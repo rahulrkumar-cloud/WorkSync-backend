@@ -27,12 +27,13 @@ const config: sql.config = {
   database: process.env.DB_DATABASE,
   options: {
     encrypt: true, // ✅ Required for Azure
-    trustServerCertificate: true, // ✅ Required for Azure
+    trustServerCertificate: true, // ✅ Required for local SQL Server
   },
 };
 
 let pool: sql.ConnectionPool | null = null;
 
+// Function to connect to the database
 export const connectToDatabase = async (): Promise<sql.ConnectionPool | null> => {
   if (!pool) {
     try {
@@ -46,4 +47,8 @@ export const connectToDatabase = async (): Promise<sql.ConnectionPool | null> =>
   return pool;
 };
 
+// Export a pool promise for queries
+export const poolPromise = connectToDatabase();
+
 export { sql };
+

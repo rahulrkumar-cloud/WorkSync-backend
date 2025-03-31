@@ -1,13 +1,29 @@
+// {
+//   "compilerOptions": {
+//     "outDir": "dist",
+//     "rootDir": "src",
+//     "module": "CommonJS",
+//     "target": "ES6",
+//     "strict": true,
+//     "esModuleInterop": true,
+//     "moduleResolution": "node",  // ✅ Add this
+//     "baseUrl": "./src"
+//   },
+//   "include": ["src"]
+// }
+
+
 {
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src",
-    "module": "CommonJS",
-    "target": "ES6",
     "strict": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",  // ✅ Add this
-    "baseUrl": "./src"
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "outDir": "./dist"
   },
-  "include": ["src"]
+  "include": [
+    "src/**/*",
+    "src/types/**/*"  // Ensure this is included if you placed express.d.ts in src/types/
+  ]
 }
+
