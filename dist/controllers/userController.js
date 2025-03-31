@@ -8,131 +8,233 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.loginUser = exports.updateUser = exports.createUser = exports.getUsers = void 0;
-const userModel_1 = require("../models/userModel"); // Import your model methods
-const userService_1 = require("../services/userService"); // User registration logic
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken")); // For generating the JWT token
+var userModel_1 = require("../models/userModel"); // Import your model methods
+var bcryptjs_1 = __importDefault(require("bcryptjs"));
+var jsonwebtoken_1 = __importDefault(require("jsonwebtoken")); // For generating the JWT token
+var db_1 = require("../db");
 // Get all users
-// export const getUsers = async (req: Request, res: Response): Promise<void> => {
-//   try {
-//     const users = await getAllUsers();
-//     res.json(users);
-//   } catch (error: unknown) {
-//     if (error instanceof Error) {
-//       console.error('❌ Database query error:', error.message);
-//       res.status(500).json({ error: 'Internal Server Error' });
-//     } else {
-//       console.error('❌ Unknown error:', error);
-//       res.status(500).json({ error: 'Internal Server Error' });
-//     }
-//   }
-// };
-// src/controllers/userController.ts
-const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        // Optionally, you can log the authenticated user like this:
-        //   console.log('Authenticated User:', req?.user||"Not found");
-        const users = yield (0, userModel_1.getAllUsers)();
-        res.json(users);
-    }
-    catch (error) {
-        if (error instanceof Error) {
-            console.error('❌ Database query error:', error.message);
-            res.status(500).json({ error: 'Internal Server Error' });
+var getUsers = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var users, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, (0, userModel_1.getAllUsers)()];
+            case 1:
+                users = _a.sent();
+                res.json(users);
+                return [3 /*break*/, 3];
+            case 2:
+                error_1 = _a.sent();
+                if (error_1 instanceof Error) {
+                    console.error('❌ Database query error:', error_1.message);
+                    res.status(500).json({ error: 'Internal Server Error' });
+                }
+                else {
+                    console.error('❌ Unknown error:', error_1);
+                    res.status(500).json({ error: 'Internal Server Error' });
+                }
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
-        else {
-            console.error('❌ Unknown error:', error);
-            res.status(500).json({ error: 'Internal Server Error' });
-        }
-    }
-});
+    });
+}); };
 exports.getUsers = getUsers;
 // Create a new user
-const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
-        res.status(400).json({ error: 'Name, email, and password are required' });
-        return;
-    }
-    try {
-        yield (0, userService_1.registerUser)(name, email, password);
-        res.status(201).json({ message: 'User created successfully' });
-    }
-    catch (error) {
-        if (error instanceof Error) {
-            console.error('❌ Error creating user:', error.message);
-            res.status(400).json({ error: error.message });
+var createUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, name, email, password, pool, hashedPassword, error_2;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = req.body, name = _a.name, email = _a.email, password = _a.password;
+                if (!name || !email || !password) {
+                    res.status(400).json({ error: "Name, email, and password are required" });
+                    return [2 /*return*/];
+                }
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 5, , 6]);
+                return [4 /*yield*/, db_1.poolPromise];
+            case 2:
+                pool = _b.sent();
+                if (!pool) {
+                    res.status(500).json({ error: "Database connection failed" });
+                    return [2 /*return*/];
+                }
+                return [4 /*yield*/, bcryptjs_1.default.hash(password, 10)];
+            case 3:
+                hashedPassword = _b.sent();
+                return [4 /*yield*/, pool
+                        .request()
+                        .input("name", db_1.sql.NVarChar, name)
+                        .input("email", db_1.sql.NVarChar, email)
+                        .input("password", db_1.sql.NVarChar, hashedPassword)
+                        .query("INSERT INTO [dbo].[Users] (name, email, password) VALUES (@name, @email, @password)")];
+            case 4:
+                _b.sent();
+                res.status(201).json({ message: "User created successfully" });
+                return [3 /*break*/, 6];
+            case 5:
+                error_2 = _b.sent();
+                if (error_2.number === 2627 || error_2.number === 2601) {
+                    console.warn("⚠️ Duplicate email detected:", email);
+                    res.status(400).json({ error: "Email already exists. Please use a different email." });
+                }
+                else {
+                    console.error("❌ Unexpected error while creating user:", error_2.message);
+                    res.status(500).json({ error: "Internal Server Error" });
+                }
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
-        else {
-            console.error('❌ Unknown error:', error);
-            res.status(400).json({ error: 'Error creating user' });
-        }
-    }
-});
+    });
+}); };
 exports.createUser = createUser;
 // Update an existing user
-const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userId = parseInt(req.params.id); // Get user ID from URL parameter
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
-        res.status(400).json({ error: 'Name, email, and password are required' });
-        return;
-    }
-    try {
-        const updatedUser = yield (0, userModel_1.updateUserById)(userId, name, email, password);
-        if (!updatedUser) {
-            res.status(404).json({ error: 'User not found' });
+var updateUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var userId, _a, name, email, password, pool, existingUser, hashedPassword, result, error_3;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                userId = parseInt(req.params.id);
+                _a = req.body, name = _a.name, email = _a.email, password = _a.password;
+                if (!name || !email || !password) {
+                    res.status(400).json({ error: "Name, email, and password are required" });
+                    return [2 /*return*/];
+                }
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 6, , 7]);
+                return [4 /*yield*/, db_1.poolPromise];
+            case 2:
+                pool = _b.sent();
+                if (!pool) {
+                    res.status(500).json({ error: "Database connection failed" });
+                    return [2 /*return*/];
+                }
+                console.log("Updating user with ID:", userId);
+                return [4 /*yield*/, pool
+                        .request()
+                        .input("id", db_1.sql.Int, userId)
+                        .query("SELECT id FROM [WorkSync].[dbo].[Users] WHERE id = @id")];
+            case 3:
+                existingUser = _b.sent();
+                if (existingUser.recordset.length === 0) {
+                    res.status(404).json({ error: "User not found" });
+                    return [2 /*return*/];
+                }
+                return [4 /*yield*/, bcryptjs_1.default.hash(password, 10)];
+            case 4:
+                hashedPassword = _b.sent();
+                return [4 /*yield*/, pool
+                        .request()
+                        .input("id", db_1.sql.Int, userId)
+                        .input("name", db_1.sql.NVarChar, name)
+                        .input("email", db_1.sql.NVarChar, email)
+                        .input("password", db_1.sql.NVarChar, hashedPassword)
+                        .query("UPDATE [WorkSync].[dbo].[Users] SET name = @name, email = @email, password = @password WHERE id = @id")];
+            case 5:
+                result = _b.sent();
+                console.log("Update result:", result);
+                if (result.rowsAffected[0] === 0) {
+                    res.status(404).json({ error: "User not found or no changes made" });
+                }
+                else {
+                    res.status(200).json({ message: "User updated successfully" });
+                }
+                return [3 /*break*/, 7];
+            case 6:
+                error_3 = _b.sent();
+                console.error("❌ Error updating user:", error_3);
+                res.status(500).json({ error: "Internal Server Error" });
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
         }
-        else {
-            res.status(200).json({ message: 'User updated successfully', user: updatedUser });
-        }
-    }
-    catch (error) {
-        if (error instanceof Error) {
-            console.error('❌ Error updating user:', error.message);
-            res.status(500).json({ error: 'Internal Server Error' });
-        }
-        else {
-            console.error('❌ Unknown error:', error);
-            res.status(500).json({ error: 'Internal Server Error' });
-        }
-    }
-});
+    });
+}); };
 exports.updateUser = updateUser;
 // Login a user
-const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password } = req.body;
-    if (!email || !password) {
-        res.status(400).json({ error: 'Email and password are required' });
-        return;
-    }
-    try {
-        const user = yield (0, userModel_1.getUserByEmail)(email); // Get user by email
-        if (user && (yield bcryptjs_1.default.compare(password, user.password))) {
-            // Password match, generate JWT token
-            const token = jsonwebtoken_1.default.sign({ id: user.id, name: user.name, email: user.email }, 'your_jwt_secret_key', // Secret key for signing the token
-            { expiresIn: '1h' } // Set the expiration time (optional)
-            );
-            res.status(200).json({ message: 'Login successful', token }); // Send the token to the user
+var loginUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, email, password, user, isPasswordValid, token, error_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = req.body, email = _a.email, password = _a.password;
+                if (!email || !password) {
+                    res.status(400).json({ error: 'Email and password are required' });
+                    return [2 /*return*/];
+                }
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 6, , 7]);
+                return [4 /*yield*/, (0, userModel_1.getUserByEmail)(email)];
+            case 2:
+                user = _b.sent();
+                console.log('Fetched user:', user); // Log user data for debugging
+                if (!user) return [3 /*break*/, 4];
+                return [4 /*yield*/, bcryptjs_1.default.compare(password, user.password)];
+            case 3:
+                isPasswordValid = _b.sent();
+                console.log('Password valid:', isPasswordValid); // Log if password is valid
+                if (isPasswordValid) {
+                    token = jsonwebtoken_1.default.sign({ id: user.id, name: user.name, email: user.email }, 'your_jwt_secret_key', // Replace with your actual secret key
+                    { expiresIn: '1h' } // Token expiration time
+                    );
+                    res.status(200).json({ message: 'Login successful', token: token });
+                }
+                else {
+                    res.status(401).json({ error: 'Invalid credentials' });
+                }
+                return [3 /*break*/, 5];
+            case 4:
+                res.status(401).json({ error: 'Invalid credentials' });
+                _b.label = 5;
+            case 5: return [3 /*break*/, 7];
+            case 6:
+                error_4 = _b.sent();
+                if (error_4 instanceof Error) {
+                    console.error('Error logging in:', error_4.message);
+                    res.status(500).json({ error: 'Internal Server Error' });
+                }
+                else {
+                    console.error('Unknown error:', error_4);
+                    res.status(500).json({ error: 'Internal Server Error' });
+                }
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
         }
-        else {
-            res.status(401).json({ error: 'Invalid credentials' });
-        }
-    }
-    catch (error) {
-        if (error instanceof Error) {
-            console.error('❌ Error logging in:', error.message);
-            res.status(500).json({ error: 'Internal Server Error' });
-        }
-        else {
-            console.error('❌ Unknown error:', error);
-            res.status(500).json({ error: 'Internal Server Error' });
-        }
-    }
-});
+    });
+}); };
 exports.loginUser = loginUser;
