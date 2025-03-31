@@ -3,21 +3,21 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const dbConfig: sql.config = {
-  user: process.env.DB_USER || "",
-  password: process.env.DB_PASSWORD || "",
-  server: process.env.DB_SERVER || "",
-  database: process.env.DB_DATABASE || "",
-  port: Number(process.env.DB_PORT) || 1433,
+const config: sql.config = {
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  server: process.env.DB_SERVER as string,
+  database: process.env.DB_DATABASE,
   options: {
-    encrypt: false, // Set to true if using Azure SQL
-    trustServerCertificate: true, // Required for local development
+    encrypt: true, // ✅ Required for Azure
+    trustServerCertificate: true, // ✅ Required for Azure
   },
 };
 
-const connectToDatabase = async (): Promise<sql.ConnectionPool | null> => {
+
+export const connectToDatabase = async () => {
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect(config);
     console.log("✅ Connected to SQL Server successfully!");
     return pool;
   } catch (error) {
@@ -26,4 +26,4 @@ const connectToDatabase = async (): Promise<sql.ConnectionPool | null> => {
   }
 };
 
-export { connectToDatabase, sql };
+export { sql };
