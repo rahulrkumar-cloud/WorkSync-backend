@@ -131,7 +131,7 @@ let pool: sql.ConnectionPool | null = null;
 
 // ✅ Enable CORS Middleware
 app.use(cors({
-  origin: ["http://localhost:3000", "https://work-sync-frontend.vercel.app"], // Adjust to your frontend domain
+  origin: ["http://localhost:3000", "https://worksync-tan.vercel.app/"], // Adjust to your frontend domain
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true // ✅ Allow cookies if needed
