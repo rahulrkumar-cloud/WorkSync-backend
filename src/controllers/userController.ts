@@ -136,8 +136,6 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     // Fetch user by email
     const user = await getUserByEmail(email);
 
-    console.log('Fetched user:', user); // Log user data for debugging
-
     if (user) {
       // Check password with bcrypt
       const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -150,8 +148,8 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
           'your_jwt_secret_key', // Replace with your actual secret key
           { expiresIn: '1h' } // Token expiration time
         );
-
-        res.status(200).json({ message: 'Login successful', token });
+        const { id, name, email } = user;
+        res.status(200).json({ message: 'Login successful',user: { id, name, email }, token });
       } else {
         res.status(401).json({ error: 'Invalid credentials' });
       }
