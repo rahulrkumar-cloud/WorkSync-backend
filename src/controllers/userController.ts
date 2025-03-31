@@ -46,11 +46,12 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 
     // Insert user into database
     await pool
-      .request()
-      .input("name", sql.NVarChar, name)
-      .input("email", sql.NVarChar, email)
-      .input("password", sql.NVarChar, hashedPassword)
-      .query("INSERT INTO [WorkSync].[dbo].[Users] (name, email, password) VALUES (@name, @email, @password)");
+  .request()
+  .input("name", sql.NVarChar, name)
+  .input("email", sql.NVarChar, email)
+  .input("password", sql.NVarChar, hashedPassword)
+  .query("INSERT INTO [dbo].[Users] (name, email, password) VALUES (@name, @email, @password)");
+
 
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
