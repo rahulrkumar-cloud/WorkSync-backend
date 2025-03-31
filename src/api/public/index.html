@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to My App</title>
+    
+    <!-- Inline CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        
+        header {
+            background-color: #0a142f;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        header h1 {
+            margin: 0;
+        }
+
+        main {
+            padding: 40px;
+        }
+        
+        h2 {
+            color: #333;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        ul li {
+            margin: 10px 0;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #0a142f;
+            color: white;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+
+        footer p {
+            margin: 0;
+        }
+    </style>
+    
+    <script defer src="app.js"></script> <!-- Optional: link to your JavaScript file -->
+</head>
+<body>
+    <header>
+        <h1>Welcome to My API</h1>
+    </header>
+    
+    <main>
+        <section>
+            <h2>API Endpoints</h2>
+            <p>Use the following endpoints:</p>
+            <ul>
+                <li><a href="/api/users">GET /api/users</a> - Get all users</li>
+                <li><a href="/api/users" target="_blank">POST /api/users</a> - Create a new user</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 My App</p>
+    </footer>
+</body>
+</html>

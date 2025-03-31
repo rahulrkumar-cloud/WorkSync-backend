@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
-    "module": "es2020",
     "outDir": "dist",
     "rootDir": "src",
-    // "module": "CommonJS",
+    "module": "CommonJS",
     "target": "ES6",
     "strict": true,
     "esModuleInterop": true,
