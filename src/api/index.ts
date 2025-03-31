@@ -122,42 +122,47 @@
 
 import express, { Application } from "express";
 import path from "path";
-import { connectToDatabase, sql } from "../db"; // Import the function that connects to the database
-import userRoutes from "../routes/userRoutes"; // Import user routes
+import cors from "cors";  // ✅ Import CORS
+import { connectToDatabase, sql } from "../db";
+import userRoutes from "../routes/userRoutes";
 
-const app: Application = express(); // ✅ Explicitly type as Application
-
+const app: Application = express();
 let pool: sql.ConnectionPool | null = null;
 
+// ✅ Enable CORS Middleware
+app.use(cors({
+  origin: ["http://localhost:3000", "https://work-sync-frontend.vercel.app"], // Adjust to your frontend domain
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true // ✅ Allow cookies if needed
+}));
+
 app.use(express.json()); // Middleware to parse JSON requests
+app.use(express.static(path.join(__dirname, "public"))); // Serve static files
 
-// Serve static files from the "public" directory, relative to `src/api`
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Connect to the database before starting the server
 const initializeServer = async () => {
-  pool = await connectToDatabase(); // Assign to the global pool variable
+  pool = await connectToDatabase();
   if (!pool) {
     console.error("❌ Failed to connect to the database. Exiting...");
-    process.exit(1); // Exit if the connection fails
+    process.exit(1);
   }
 
-  // Use the user routes
-  app.use("/api", userRoutes); // Register the user routes with a base path
+  // ✅ Use the user routes
+  app.use("/api", userRoutes);
 
-  // Serve index.html at the root URL
+  // Serve index.html at root
   app.get("/", (req, res) => {
-    const filePath = path.join(__dirname, 'public', 'index.html');
-    console.log('Resolved path:', filePath); // Log the resolved path
-    res.sendFile(filePath); // Send the file
+    const filePath = path.join(__dirname, "public", "index.html");
+    console.log("Resolved path:", filePath);
+    res.sendFile(filePath);
   });
 
-  // Start the server after DB connection is established
+  // ✅ Start the server after DB connection
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`✅ Server running on http://localhost:${PORT}`);
   });
 };
 
-// Initialize the server
+// Initialize server
 initializeServer();
