@@ -122,23 +122,32 @@
 
 import express, { Application } from "express";
 import path from "path";
-import cors from "cors";  // ✅ Import CORS
+import cors from "cors";  
 import { connectToDatabase, sql } from "../db";
 import userRoutes from "../routes/userRoutes";
 
 const app: Application = express();
 let pool: sql.ConnectionPool | null = null;
 
-// ✅ Enable CORS Middleware
+// ✅ Enable CORS Middleware (Fix trailing slash & allow preflight)
 app.use(cors({
-  origin: ["http://localhost:3000", "https://worksync-tan.vercel.app/"], // Adjust to your frontend domain
+  origin: ["http://localhost:3000", "https://worksync-tan.vercel.app"],  // ✅ Remove trailing slash
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true // ✅ Allow cookies if needed
+  credentials: true 
 }));
 
-app.use(express.json()); // Middleware to parse JSON requests
-app.use(express.static(path.join(__dirname, "public"))); // Serve static files
+// ✅ Allow Preflight Requests (for stricter browsers like Safari)
+app.options("*", cors()); 
+
+// ✅ Middleware to set security headers (Fix `strict-origin-when-cross-origin` issue)
+app.use((req, res, next) => {
+  res.header("Referrer-Policy", "no-referrer-when-downgrade");  // ✅ Adjust referrer policy
+  next();
+});
+
+app.use(express.json()); 
+app.use(express.static(path.join(__dirname, "public"))); 
 
 const initializeServer = async () => {
   pool = await connectToDatabase();
@@ -150,7 +159,12 @@ const initializeServer = async () => {
   // ✅ Use the user routes
   app.use("/api", userRoutes);
 
-  // Serve index.html at root
+  // ✅ Test Route for CORS Debugging
+  app.get("/test-cors", (req, res) => {
+    res.json({ message: "CORS is working" });
+  });
+
+  // ✅ Serve index.html at root
   app.get("/", (req, res) => {
     const filePath = path.join(__dirname, "public", "index.html");
     console.log("Resolved path:", filePath);
@@ -166,3 +180,4 @@ const initializeServer = async () => {
 
 // Initialize server
 initializeServer();
+
