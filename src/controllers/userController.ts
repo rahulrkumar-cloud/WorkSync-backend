@@ -36,7 +36,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
   }
 
   try {
-    const pool = await poolPromise; // Get DB connection
+    const pool = await poolPromise;
     if (!pool) {
       res.status(500).json({ error: "Database connection failed" });
       return;
@@ -44,21 +44,25 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert user into database
     await pool
-  .request()
-  .input("name", sql.NVarChar, name)
-  .input("email", sql.NVarChar, email)
-  .input("password", sql.NVarChar, hashedPassword)
-  .query("INSERT INTO [dbo].[Users] (name, email, password) VALUES (@name, @email, @password)");
-
+      .request()
+      .input("name", sql.NVarChar, name)
+      .input("email", sql.NVarChar, email)
+      .input("password", sql.NVarChar, hashedPassword)
+      .query("INSERT INTO [dbo].[Users] (name, email, password) VALUES (@name, @email, @password)");
 
     res.status(201).json({ message: "User created successfully" });
-  } catch (error) {
-    console.error("❌ Error creating user:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+  } catch (error: any) {
+    if (error.number === 2627 || error.number === 2601) {
+      console.warn("⚠️ Duplicate email detected:", email);
+      res.status(400).json({ error: "Email already exists. Please use a different email." });
+    } else {
+      console.error("❌ Unexpected error while creating user:", error.message);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   }
 };
+
 
 // Update an existing user
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
