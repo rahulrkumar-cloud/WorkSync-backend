@@ -4,6 +4,7 @@ import { registerUser } from '../services/userService'; // User registration log
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'; // For generating the JWT token
 import { poolPromise, sql } from '../db';
+import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 
 // Get all users
 
@@ -165,4 +166,14 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
+};
+
+
+export const checkTokenValidity = (req: AuthenticatedRequest, res: Response): void => {
+  if (!req.user) {
+    res.status(401).json({ error: 'Invalid or expired token' });
+    return;
+  }
+  
+  res.status(200).json({ message: 'Token is valid', user: req.user });
 };

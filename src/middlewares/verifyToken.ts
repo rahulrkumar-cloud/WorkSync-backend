@@ -1,4 +1,4 @@
-/// <reference path="../../types/express.d.ts" />
+/// <reference path="../types/express.d.ts" />
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 

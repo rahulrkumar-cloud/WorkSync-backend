@@ -12,8 +12,8 @@
 
 
 import { Router } from 'express';
-import { getUsers, createUser, updateUser, loginUser } from '../controllers/userController';
-import { verifyToken } from '../api/middlewares/verifyToken';
+import { getUsers, createUser, updateUser, loginUser, checkTokenValidity } from '../controllers/userController';
+import { verifyToken } from '../middlewares/verifyToken';
 
 const router = Router();
 
@@ -24,5 +24,7 @@ router.post('/login', loginUser);  // Login user
 // Protected Routes (Require JWT Token)
 router.get('/users', verifyToken, getUsers);  // Get all users (protected)
 router.put('/users/:id', verifyToken, updateUser);  // Update user (protected)
+
+router.get('/check-token', verifyToken, checkTokenValidity);
 
 export default router;

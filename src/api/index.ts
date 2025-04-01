@@ -159,6 +159,8 @@ const initializeServer = async () => {
   // ✅ Use the user routes
   app.use("/api", userRoutes);
 
+  app.use('/api/auth', userRoutes);
+
   // ✅ Test Route for CORS Debugging
   app.get("/test-cors", (req, res) => {
     res.json({ message: "CORS is working" });
