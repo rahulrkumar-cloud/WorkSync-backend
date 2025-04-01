@@ -18,6 +18,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/mssql": "^9.1.7",
     "@types/node": "^22.13.14",
+    "@types/socket.io": "^3.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   },

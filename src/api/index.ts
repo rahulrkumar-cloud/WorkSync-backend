@@ -120,34 +120,97 @@
 // // Initialize the server
 // initializeServer();
 
+// import express, { Application } from "express";
+// import path from "path";
+// import cors from "cors";  
+// import { connectToDatabase, sql } from "../db";
+// import userRoutes from "../routes/userRoutes";
+
+// const app: Application = express();
+// let pool: sql.ConnectionPool | null = null;
+
+// // ✅ Enable CORS Middleware (Fix trailing slash & allow preflight)
+// app.use(cors({
+//   origin: ["http://localhost:3000", "https://worksync-tan.vercel.app"],  // ✅ Remove trailing slash
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   allowedHeaders: ["Content-Type", "Authorization"],
+//   credentials: true 
+// }));
+
+// // ✅ Allow Preflight Requests (for stricter browsers like Safari)
+// app.options("*", cors()); 
+
+// // ✅ Middleware to set security headers (Fix `strict-origin-when-cross-origin` issue)
+// app.use((req, res, next) => {
+//   res.header("Referrer-Policy", "no-referrer-when-downgrade");  // ✅ Adjust referrer policy
+//   next();
+// });
+
+// app.use(express.json()); 
+// app.use(express.static(path.join(__dirname, "public"))); 
+
+// const initializeServer = async () => {
+//   pool = await connectToDatabase();
+//   if (!pool) {
+//     console.error("❌ Failed to connect to the database. Exiting...");
+//     process.exit(1);
+//   }
+
+//   // ✅ Use the user routes
+//   app.use("/api", userRoutes);
+
+//   app.use('/api/auth', userRoutes);
+
+//   // ✅ Test Route for CORS Debugging
+//   app.get("/test-cors", (req, res) => {
+//     res.json({ message: "CORS is working" });
+//   });
+
+//   // ✅ Serve index.html at root
+//   app.get("/", (req, res) => {
+//     const filePath = path.join(__dirname, "public", "index.html");
+//     console.log("Resolved path:", filePath);
+//     res.sendFile(filePath);
+//   });
+
+//   // ✅ Start the server after DB connection
+//   const PORT = process.env.PORT || 3000;
+//   app.listen(PORT, () => {
+//     console.log(`✅ Server running on http://localhost:${PORT}`);
+//   });
+// };
+
+// // Initialize server
+// initializeServer();
 import express, { Application } from "express";
 import path from "path";
-import cors from "cors";  
+import cors from "cors";
 import { connectToDatabase, sql } from "../db";
 import userRoutes from "../routes/userRoutes";
+import http from "http";
+import { Server } from "socket.io"; // Corrected import
 
 const app: Application = express();
+const server = http.createServer(app); // Create HTTP server from Express app
+const io = new Server(server); // Initialize Socket.io with the server
 let pool: sql.ConnectionPool | null = null;
 
-// ✅ Enable CORS Middleware (Fix trailing slash & allow preflight)
 app.use(cors({
-  origin: ["http://localhost:3000", "https://worksync-tan.vercel.app"],  // ✅ Remove trailing slash
+  origin: ["http://localhost:3000", "https://worksync-tan.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true 
+  credentials: true
 }));
 
-// ✅ Allow Preflight Requests (for stricter browsers like Safari)
-app.options("*", cors()); 
+app.options("*", cors());
 
-// ✅ Middleware to set security headers (Fix `strict-origin-when-cross-origin` issue)
 app.use((req, res, next) => {
-  res.header("Referrer-Policy", "no-referrer-when-downgrade");  // ✅ Adjust referrer policy
+  res.header("Referrer-Policy", "no-referrer-when-downgrade");
   next();
 });
 
-app.use(express.json()); 
-app.use(express.static(path.join(__dirname, "public"))); 
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
 
 const initializeServer = async () => {
   pool = await connectToDatabase();
@@ -156,30 +219,40 @@ const initializeServer = async () => {
     process.exit(1);
   }
 
-  // ✅ Use the user routes
   app.use("/api", userRoutes);
-
   app.use('/api/auth', userRoutes);
 
-  // ✅ Test Route for CORS Debugging
   app.get("/test-cors", (req, res) => {
     res.json({ message: "CORS is working" });
   });
 
-  // ✅ Serve index.html at root
   app.get("/", (req, res) => {
     const filePath = path.join(__dirname, "public", "index.html");
-    console.log("Resolved path:", filePath);
     res.sendFile(filePath);
   });
 
-  // ✅ Start the server after DB connection
+  // Start the server with Socket.io
   const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`✅ Server running on http://localhost:${PORT}`);
   });
 };
 
-// Initialize server
+// Initialize the server
 initializeServer();
+
+// WebSocket connection handler
+io.on("connection", (socket) => {
+  console.log("A user connected");
+
+  // Listen for incoming messages
+  socket.on("sendMessage", (message) => {
+    console.log("Message received:", message);
+    io.emit("receiveMessage", message); // Broadcast to all connected clients
+  });
+
+  socket.on("disconnect", () => {
+    console.log("A user disconnected");
+  });
+});
 
