@@ -232,7 +232,7 @@ const initializeServer = async () => {
     });
 
     // Start the server with Socket.io
-    const PORT = process.env.PORT || 3000;
+    const PORT = process.env.PORT || 3000; // Ensure it's the right port for your socket server
     server.listen(PORT, () => {
       console.log(`✅ Server running on http://localhost:${PORT}`);
     });
