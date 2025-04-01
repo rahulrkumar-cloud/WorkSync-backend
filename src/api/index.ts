@@ -188,71 +188,109 @@ import cors from "cors";
 import { connectToDatabase, sql } from "../db";
 import userRoutes from "../routes/userRoutes";
 import http from "http";
-import { Server } from "socket.io"; // Corrected import
+import { Server } from "socket.io";
 
 const app: Application = express();
 const server = http.createServer(app); // Create HTTP server from Express app
-const io = new Server(server); // Initialize Socket.io with the server
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:3000", "https://worksync-tan.vercel.app"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  },
+}); // Initialize Socket.io with CORS settings
+
 let pool: sql.ConnectionPool | null = null;
 
-app.use(cors({
-  origin: ["http://localhost:3000", "https://worksync-tan.vercel.app"],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
-}));
-
+app.use(cors());
 app.options("*", cors());
-
-app.use((req, res, next) => {
-  res.header("Referrer-Policy", "no-referrer-when-downgrade");
-  next();
-});
-
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 const initializeServer = async () => {
-  pool = await connectToDatabase();
-  if (!pool) {
-    console.error("❌ Failed to connect to the database. Exiting...");
+  try {
+    pool = await connectToDatabase();
+    if (!pool) {
+      throw new Error("Failed to connect to the database");
+    }
+    console.log("✅ Connected to the database");
+
+    // API routes
+    app.use("/api", userRoutes);
+    app.use("/api/auth", userRoutes);
+
+    // Test route for CORS
+    app.get("/test-cors", (req, res) => {
+      res.json({ message: "CORS is working" });
+    });
+
+    // Serve the index.html page
+    app.get("/", (req, res) => {
+      const filePath = path.join(__dirname, "public", "index.html");
+      res.sendFile(filePath);
+    });
+
+    // Start the server with Socket.io
+    const PORT = process.env.PORT || 3000;
+    server.listen(PORT, () => {
+      console.log(`✅ Server running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Error initializing server:", error);
     process.exit(1);
   }
-
-  app.use("/api", userRoutes);
-  app.use('/api/auth', userRoutes);
-
-  app.get("/test-cors", (req, res) => {
-    res.json({ message: "CORS is working" });
-  });
-
-  app.get("/", (req, res) => {
-    const filePath = path.join(__dirname, "public", "index.html");
-    res.sendFile(filePath);
-  });
-
-  // Start the server with Socket.io
-  const PORT = process.env.PORT || 3000;
-  server.listen(PORT, () => {
-    console.log(`✅ Server running on http://localhost:${PORT}`);
-  });
 };
 
 // Initialize the server
 initializeServer();
 
-// WebSocket connection handler
-io.on("connection", (socket) => {
-  console.log("A user connected");
+// Keep track of connected users
+let clients: { [key: string]: string } = {}; // Store socket.id associated with user
 
-  // Listen for incoming messages
-  socket.on("sendMessage", (message) => {
-    console.log("Message received:", message);
-    io.emit("receiveMessage", message); // Broadcast to all connected clients
+io.on("connection", (socket) => {
+  console.log("A user connected", socket.id);
+
+  // Add client to the clients map (associate user with socket.id)
+  socket.on("setUsername", (username: string) => {
+    clients[username] = socket.id; // Store socket.id with the username
+    console.log(`${username} connected with socket ID: ${socket.id}`);
   });
 
+  // Listen for incoming messages and send them to the specific user
+  socket.on("sendMessage", (message: { text: string; recipient: string; sender: string }) => {
+    const { text, recipient, sender } = message;
+
+    console.log(`Received message from ${sender} to ${recipient}: ${text}`);
+
+    if (clients[recipient]) {
+      // Send the message to the recipient's socket ID
+      io.to(clients[recipient]).emit("receiveMessage", {
+        text,
+        sender,
+        recipient,
+      });
+      console.log(`Message sent to ${recipient}: ${text}`);
+    } else {
+      console.log(`User ${recipient} is not connected`);
+    }
+  });
+
+  // Handle socket disconnection
   socket.on("disconnect", () => {
-    console.log("A user disconnected");
+    console.log("A user disconnected", socket.id);
+    // You can remove the user from the clients map if they disconnect
+    for (const [username, id] of Object.entries(clients)) {
+      if (id === socket.id) {
+        delete clients[username]; // Remove username from clients map
+        console.log(`${username} disconnected`);
+        break;
+      }
+    }
+  });
+
+  // Handle errors
+  socket.on("error", (err) => {
+    console.error("Socket error:", err);
   });
 });
-
