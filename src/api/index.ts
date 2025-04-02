@@ -194,7 +194,7 @@ const app: Application = express();
 const server = http.createServer(app); // Create HTTP server from Express app
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://worksync-tan.vercel.app","https://work-sync-backend.vercel.app","https://work-sync-backend.vercel.app/api"],
+    origin: ["http://localhost:3000", "https://worksync-tan.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -232,7 +232,7 @@ const initializeServer = async () => {
     });
 
     // Start the server with Socket.io
-    const PORT = process.env.PORT || 3000;
+    const PORT = process.env.PORT || 3000; // Ensure it's the right port for your socket server
     server.listen(PORT, () => {
       console.log(`✅ Server running on http://localhost:${PORT}`);
     });
