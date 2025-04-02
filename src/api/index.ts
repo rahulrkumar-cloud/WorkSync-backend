@@ -192,15 +192,15 @@ import { Server } from "socket.io";
 
 const app: Application = express();
 const server = http.createServer(app); // Create HTTP server from Express app
-
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allow all origins temporarily
+    origin: ["http://localhost:3000", "https://worksync-tan.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   },
-});
+}); // Initialize Socket.io with CORS settings
+
 let pool: sql.ConnectionPool | null = null;
 
 app.use(cors());
