@@ -194,7 +194,7 @@ const app: Application = express();
 const server = http.createServer(app); // Create HTTP server from Express app
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://worksync-tan.vercel.app"],
+    origin: ["http://localhost:3000", "https://worksync-tan.vercel.app","https://work-sync-backend.vercel.app","https://work-sync-backend.vercel.app/api"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
