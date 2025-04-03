@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getAllUsers, getUserByEmail } from '../models/userModel'; // Import your model methods
+import { checkUsername, getAllUsers, getUserByEmail } from '../models/userModel'; // Import your model methods
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'; // For generating the JWT token
 import { poolPromise, sql } from '../db';
@@ -28,10 +28,10 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
 
 // Create a new user
 export const createUser = async (req: Request, res: Response): Promise<void> => {
-  const {username, name, email, password } = req.body;
+  const { username, name, email, password } = req.body;
 
-  if (!username||!name || !email || !password) {
-    res.status(400).json({ error: "Username,Name, email, and password are required" });
+  if (!username || !name || !email || !password) {
+    res.status(400).json({ error: "Username, name, email, and password are required" });
     return;
   }
 
@@ -39,6 +39,13 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     const pool = await poolPromise;
     if (!pool) {
       res.status(500).json({ error: "Database connection failed" });
+      return;
+    }
+
+    // 🔍 Check if username already exists
+    const usernameExists = await checkUsername(username);
+    if (usernameExists) {
+      res.status(409).json({ error: "Username already taken" });
       return;
     }
 
@@ -50,7 +57,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
       .input("name", sql.NVarChar, name)
       .input("email", sql.NVarChar, email)
       .input("password", sql.NVarChar, hashedPassword)
-      .query("INSERT INTO [dbo].[Users] (username,name, email, password) VALUES (@username,@name, @email, @password)");
+      .query("INSERT INTO [dbo].[Users] (username, name, email, password) VALUES (@username, @name, @email, @password)");
 
     res.status(201).json({ message: "User created successfully" });
   } catch (error: any) {
@@ -63,6 +70,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     }
   }
 };
+
 
 
 // Update an existing user
@@ -170,3 +178,29 @@ export const checkTokenValidity = (req: AuthenticatedRequest, res: Response): vo
   
   res.status(200).json({ message: 'Token is valid', user: req.user });
 };
+
+
+// Check if username is available
+export const getUsername = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { username } = req.body;
+
+    // If username is empty or just spaces, silently return without responding
+    if (!username || username.trim() === "") {
+      return;
+    }
+
+    const isUsernameTaken = await checkUsername(username);
+
+    if (isUsernameTaken) {
+      res.status(409).json({ error: "Username is already taken" });
+      return;
+    }
+
+    res.json({ message: "Username is available" });
+  } catch (error) {
+    console.error("❌ Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+

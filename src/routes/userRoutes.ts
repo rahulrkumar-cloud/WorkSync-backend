@@ -12,7 +12,7 @@
 
 
 import { Router } from 'express';
-import { getUsers, createUser, updateUser, loginUser, checkTokenValidity } from '../controllers/userController';
+import { getUsers, createUser, updateUser, loginUser, checkTokenValidity, getUsername } from '../controllers/userController';
 import { verifyToken } from '../middlewares/verifyToken';
 
 const router = Router();
@@ -20,6 +20,7 @@ const router = Router();
 // Public Routes
 router.post('/users', createUser);  // Create a new user
 router.post('/login', loginUser);  // Login user
+router.post("/username", getUsername); //check username
 
 // Protected Routes (Require JWT Token)
 router.get('/users', verifyToken, getUsers);  // Get all users (protected)

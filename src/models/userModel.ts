@@ -18,6 +18,20 @@ export const getAllUsers = async (): Promise<User[]> => {
   return result.recordset;
 };
 
+// Get all users
+export const checkUsername = async (username: string): Promise<boolean> => {
+  const pool = await connectToDatabase();
+  if (!pool) throw new Error("Database connection failed");
+
+  const result = await pool
+    .request()
+    .input("username", sql.NVarChar, username)
+    .query("SELECT COUNT(*) AS count FROM Users WHERE username = @username");
+
+  return result.recordset[0].count > 0; // Returns true if username exists
+};
+
+
 // Get user by email
 export const getUserByEmail = async (email: string): Promise<User | null> => {
   const pool = await connectToDatabase();
