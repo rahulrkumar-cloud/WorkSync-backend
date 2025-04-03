@@ -120,7 +120,7 @@
 // // Initialize the server
 // initializeServer();
 
-import express, { Application } from "express";
+import express, { Application, Request, Response, NextFunction } from "express";
 import path from "path";
 import cors from "cors";  
 import { connectToDatabase, sql } from "../db";
@@ -129,19 +129,41 @@ import userRoutes from "../routes/userRoutes";
 const app: Application = express();
 let pool: sql.ConnectionPool | null = null;
 
-// ✅ Enable CORS Middleware (Fix trailing slash & allow preflight)
+// ✅ Define allowed origins dynamically
+const allowedOrigins = [
+  ...Array.from({ length: 11 }, (_, i) => `http://localhost:${3000 + i}`), // ✅ Allows 3000-3010
+  "https://worksync-tan.vercel.app"
+];
+
 app.use(cors({
-  origin: ["http://localhost:3000", "https://worksync-tan.vercel.app"],  // ✅ Remove trailing slash
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  origin: (origin, callback) => {
+    console.log("🔍 Incoming Origin:", origin);  // Debugging line
+    
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.error("❌ CORS Blocked Origin:", origin);  // Debugging
+      callback(new Error("CORS not allowed"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true 
 }));
 
-// ✅ Allow Preflight Requests (for stricter browsers like Safari)
-app.options("*", cors()); 
+
+
+// ✅ Handle Preflight Requests (for stricter browsers like Safari)
+app.options("*", (req, res) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.sendStatus(204);
+});
 
 // ✅ Middleware to set security headers (Fix `strict-origin-when-cross-origin` issue)
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   res.header("Referrer-Policy", "no-referrer-when-downgrade");  // ✅ Adjust referrer policy
   next();
 });
@@ -158,16 +180,15 @@ const initializeServer = async () => {
 
   // ✅ Use the user routes
   app.use("/api", userRoutes);
-
-  app.use('/api/auth', userRoutes);
+  app.use("/api/auth", userRoutes);
 
   // ✅ Test Route for CORS Debugging
-  app.get("/test-cors", (req, res) => {
+  app.get("/test-cors", (req: Request, res: Response) => {
     res.json({ message: "CORS is working" });
   });
 
   // ✅ Serve index.html at root
-  app.get("/", (req, res) => {
+  app.get("/", (req: Request, res: Response) => {
     const filePath = path.join(__dirname, "public", "index.html");
     console.log("Resolved path:", filePath);
     res.sendFile(filePath);

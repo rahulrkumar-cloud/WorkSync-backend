@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
-import { getAllUsers, getUserByEmail, updateUserById } from '../models/userModel'; // Import your model methods
-import { registerUser } from '../services/userService'; // User registration logic
+import { getAllUsers, getUserByEmail } from '../models/userModel'; // Import your model methods
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'; // For generating the JWT token
 import { poolPromise, sql } from '../db';
@@ -29,10 +28,10 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
 
 // Create a new user
 export const createUser = async (req: Request, res: Response): Promise<void> => {
-  const { name, email, password } = req.body;
+  const {username, name, email, password } = req.body;
 
-  if (!name || !email || !password) {
-    res.status(400).json({ error: "Name, email, and password are required" });
+  if (!username||!name || !email || !password) {
+    res.status(400).json({ error: "Username,Name, email, and password are required" });
     return;
   }
 
@@ -47,10 +46,11 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 
     await pool
       .request()
+      .input("username", sql.NVarChar, username)
       .input("name", sql.NVarChar, name)
       .input("email", sql.NVarChar, email)
       .input("password", sql.NVarChar, hashedPassword)
-      .query("INSERT INTO [dbo].[Users] (name, email, password) VALUES (@name, @email, @password)");
+      .query("INSERT INTO [dbo].[Users] (username,name, email, password) VALUES (@username,@name, @email, @password)");
 
     res.status(201).json({ message: "User created successfully" });
   } catch (error: any) {
@@ -59,7 +59,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
       res.status(400).json({ error: "Email already exists. Please use a different email." });
     } else {
       console.error("❌ Unexpected error while creating user:", error.message);
-      res.status(500).json({ error: "Internal Server Error" });
+      res.status(500).json({ error: error.message });
     }
   }
 };
@@ -126,47 +126,40 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 
 // Login a user
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
-  const { email, password } = req.body;
+  const { email, password }: { email: string; password: string } = req.body;
 
   if (!email || !password) {
-    res.status(400).json({ error: 'Email and password are required' });
+    res.status(400).json({ message: "Email and password are required" });
     return;
   }
 
   try {
-    // Fetch user by email
     const user = await getUserByEmail(email);
-
-    if (user) {
-      // Check password with bcrypt
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      console.log('Password valid:', isPasswordValid); // Log if password is valid
-
-      if (isPasswordValid) {
-        // If password matches, generate a JWT token
-        const token = jwt.sign(
-          { id: user.id, name: user.name, email: user.email },
-          'your_jwt_secret_key', // Replace with your actual secret key
-          { expiresIn: '1h' } // Token expiration time
-        );
-        const { id, name, email } = user;
-        res.status(200).json({ message: 'Login successful',user: { id, name, email }, token });
-      } else {
-        res.status(401).json({ error: 'Invalid credentials' });
-      }
-    } else {
-      res.status(401).json({ error: 'Invalid credentials' });
+    
+    if (!user) {
+      res.status(404).json({ message: "User does not exist" });
+      return;
     }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      res.status(401).json({ message: "Invalid credentials" });
+      return;
+    }
+
+    const token = jwt.sign(
+      { id: user.id, name: user.name, email: user.email },
+      "your_jwt_secret_key",
+      { expiresIn: "1h" }
+    );
+
+    res.status(200).json({ message: "Login successful", user: { id: user.id, name: user.name, email: user.email }, token });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error('Error logging in:', error.message);
-      res.status(500).json({ error: 'Internal Server Error' });
-    } else {
-      console.error('Unknown error:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
+    console.error("Error logging in:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 
 export const checkTokenValidity = (req: AuthenticatedRequest, res: Response): void => {
