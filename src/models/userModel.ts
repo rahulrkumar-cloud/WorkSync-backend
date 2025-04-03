@@ -7,6 +7,7 @@ export interface User {
   name: string;
   email: string;
   password: string;
+  username:string;
 }
 
 // Get all users
@@ -56,4 +57,18 @@ export const createUser = async (user: User): Promise<void> => {
     .input('email', sql.NVarChar, user.email)
     .input('password', sql.NVarChar, hashedPassword)
     .query('INSERT INTO Users (name, email, password) VALUES (@name, @email, @password)');
+};
+
+
+// Get user by email or username
+export const getUserByEmailOrUsername = async (email?: string, username?: string): Promise<User | null> => {
+  const pool = await connectToDatabase();
+  if (!pool) throw new Error("Database connection failed");
+
+  const result = await pool.request()
+    .input('email', sql.NVarChar, email || null)
+    .input('username', sql.NVarChar, username || null)
+    .query('SELECT * FROM Users WHERE email = @email OR username = @username');
+
+  return result.recordset[0] || null;
 };

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { checkUsername, getAllUsers, getUserByEmail } from '../models/userModel'; // Import your model methods
+import { checkUsername, getAllUsers, getUserByEmail, getUserByEmailOrUsername } from '../models/userModel'; // Import your model methods
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'; // For generating the JWT token
 import { poolPromise, sql } from '../db';
@@ -134,16 +134,16 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 
 // Login a user
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
-  const { email, password }: { email: string; password: string } = req.body;
+  const { email, username, password }: { email?: string; username?: string; password: string } = req.body;
 
-  if (!email || !password) {
-    res.status(400).json({ message: "Email and password are required" });
+  if ((!email && !username) || !password) {
+    res.status(400).json({ message: "Email or Username and password are required" });
     return;
   }
 
   try {
-    const user = await getUserByEmail(email);
-    
+    const user = await getUserByEmailOrUsername(email, username);
+
     if (!user) {
       res.status(404).json({ message: "User does not exist" });
       return;
@@ -156,12 +156,16 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     }
 
     const token = jwt.sign(
-      { id: user.id, name: user.name, email: user.email },
+      { id: user.id, name: user.name, email: user.email, username: user.username },
       "your_jwt_secret_key",
       { expiresIn: "1h" }
     );
 
-    res.status(200).json({ message: "Login successful", user: { id: user.id, name: user.name, email: user.email }, token });
+    res.status(200).json({ 
+      message: "Login successful", 
+      user: { id: user.id, name: user.name, email: user.email, username: user.username }, 
+      token 
+    });
   } catch (error: unknown) {
     console.error("Error logging in:", error);
     res.status(500).json({ message: "Internal Server Error" });
