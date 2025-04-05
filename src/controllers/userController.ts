@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { checkUsername, getAllUsers, getUserByEmail, getUserByEmailOrUsername } from '../models/userModel'; // Import your model methods
+import { checkUsername, getAllUsers, getMessages, getUserByEmail, getUserByEmailOrUsername, sendMessage } from '../models/userModel'; // Import your model methods
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'; // For generating the JWT token
 import { poolPromise, sql } from '../db';
@@ -208,3 +208,43 @@ export const getUsername = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+// Send a new message
+export const sendMessageController = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const receiverId = parseInt(req.params.receiverId); // <-- from URL
+  const { message } = req.body;
+  const senderId = req.user?.id;
+
+  if (!senderId || !receiverId || !message) {
+    res.status(400).json({ message: 'Sender ID, Receiver ID, and Message are required' });
+    return;
+  }
+
+  try {
+    await sendMessage(senderId, receiverId, message);
+    res.status(201).json({ message: 'Message sent successfully' });
+  } catch (error) {
+    console.error('Error sending message:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+// Get all messages
+export const getMessagesController = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const userId = req.user?.id; // The logged-in user (sender)
+  const chatWithUserId = parseInt(req.params.chatWithUserId); // The other user (receiver)
+
+  if (!userId || isNaN(chatWithUserId)) {
+    res.status(400).json({ message: 'Invalid user or chat ID' });
+    return;
+  }
+
+  try {
+    // Fetch messages between these two users
+    const messages = await getMessages(userId, chatWithUserId); // Update your model accordingly
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

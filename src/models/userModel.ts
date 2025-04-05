@@ -10,6 +10,14 @@ export interface User {
   username:string;
 }
 
+export interface Message {
+  id: number;
+  sender_id: number;
+  receiver_id: number;
+  message: string;
+  created_at: string;
+}
+
 // Get all users
 export const getAllUsers = async (): Promise<User[]> => {
   const pool = await connectToDatabase();
@@ -71,4 +79,35 @@ export const getUserByEmailOrUsername = async (email?: string, username?: string
     .query('SELECT * FROM Users WHERE email = @email OR username = @username');
 
   return result.recordset[0] || null;
+};
+
+
+export const sendMessage = async (senderId: number, receiverId: number, message: string): Promise<void> => {
+  const pool = await connectToDatabase();
+  if (!pool) throw new Error("Database connection failed");
+
+  await pool.request()
+    .input('sender_id', sql.Int, senderId)
+    .input('receiver_id', sql.Int, receiverId)
+    .input('message', sql.NVarChar, message)
+    .query('INSERT INTO Messages (sender_id, receiver_id, message) VALUES (@sender_id, @receiver_id, @message)');
+};
+
+// Get messages between users
+export const getMessages = async (userId: number, chatWithUserId: number) => {
+  const pool = await connectToDatabase();
+  if (!pool) throw new Error("Database connection failed");
+  const result = await pool.request()
+    .input("user1", sql.Int, userId)
+    .input("user2", sql.Int, chatWithUserId)
+    .query(`
+      SELECT * FROM Messages
+      WHERE 
+        (sender_id = @user1 AND receiver_id = @user2)
+        OR 
+        (sender_id = @user2 AND receiver_id = @user1)
+      ORDER BY created_at ASC
+    `);
+
+  return result.recordset;
 };

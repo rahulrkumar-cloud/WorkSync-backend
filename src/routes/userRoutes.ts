@@ -12,7 +12,7 @@
 
 
 import { Router } from 'express';
-import { getUsers, createUser, updateUser, loginUser, checkTokenValidity, getUsername } from '../controllers/userController';
+import { getUsers, createUser, updateUser, loginUser, checkTokenValidity, getUsername, sendMessageController, getMessagesController } from '../controllers/userController';
 import { verifyToken } from '../middlewares/verifyToken';
 
 const router = Router();
@@ -27,5 +27,9 @@ router.get('/users', verifyToken, getUsers);  // Get all users (protected)
 router.put('/users/:id', verifyToken, updateUser);  // Update user (protected)
 
 router.get('/check-token', verifyToken, checkTokenValidity);
+
+// Protected Routes (Authenticated User Only)
+router.post('/messages/send/:receiverId', verifyToken, sendMessageController);
+router.get("/messages/:chatWithUserId", verifyToken, getMessagesController);// Get Messages
 
 export default router;
