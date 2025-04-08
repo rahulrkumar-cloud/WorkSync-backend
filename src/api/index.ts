@@ -132,7 +132,7 @@ let pool: sql.ConnectionPool | null = null;
 // ✅ Define allowed origins dynamically
 const allowedOrigins = [
   ...Array.from({ length: 11 }, (_, i) => `http://localhost:${3000 + i}`), // ✅ Allows 3000-3010
-  "https://worksync-tan.vercel.app","https://worksync-front.vercel.app"
+  "https://worksync-front.vercel.app"
 ];
 
 app.use(cors({
